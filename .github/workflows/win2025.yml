@@ -1,4 +1,4 @@
-name: Windows 2025 (Pinggy SSL Tunnel)
+name: Windows 2025 (Pinggy Fix Tunnel)
 
 on: workflow_dispatch
 
@@ -21,5 +21,24 @@ jobs:
 
     - name: Start Pinggy TCP Tunnel (RDP 3389)
       run: |
-        # 3. تشغيل النفق عبر بورت 443 مع تفعيل خيارات عدم التفاعل لطباعة الرابط فوراً
-        ssh -o StrictHostKeyChecking=no -T -n -p 443 -R 0:localhost:3389 rdp@a.pinggy.io
+        # 3. تشغيل النفق في الخلفية وحفظ المخرجات في ملف نصي لقراءته
+        Start-Process powershell -ArgumentList "-NoExit -Command `"ssh -o StrictHostKeyChecking=no -p 443 -R 0:localhost:3389 rdp@a.pinggy.io > pinggy.log`""
+        
+        # الانتظار 15 ثانية لتوليد الرابط من السيرفر
+        Start-Sleep -Seconds 15
+        
+        # طباعة الرابط المستخرج من الملف النصي
+        Write-Host "=== Your RDP Connection Info ==="
+        if (Test-Path "pinggy.log") {
+            Get-Content pinggy.log | Select-String "pinggy.link"
+        }
+        Write-Host "================================"
+
+    - name: Keep Runner Alive
+      run: |
+        # 4. حلقة تكرارية مستمرة تمنع جهاز GitHub من الإغلاق التلقائي
+        $ServerLoop = 1
+        while ($ServerLoop -eq 1) {
+            Start-Sleep -Seconds 30
+            Write-Host "Server is still running... Keep alive."
+        }
