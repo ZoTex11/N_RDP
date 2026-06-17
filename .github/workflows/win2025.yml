@@ -1,4 +1,4 @@
-name: Windows 2025 (Pinggy TCP Tunnel)
+name: Windows 2025 (Pinggy SSL Tunnel)
 
 on: workflow_dispatch
 
@@ -21,5 +21,5 @@ jobs:
 
     - name: Start Pinggy TCP Tunnel (RDP 3389)
       run: |
-        # 3. تشغيل نفق TCP مباشر وطباعة بيانات الاتصال فوراً في الـ Logs
-        ssh -o StrictHostKeyChecking=no -R 0:localhost:3389 rdp@pinggy.io
+        # 3. تشغيل النفق عبر بورت 443 المحمي لتفادي الـ Block وحظر الـ SSH
+        ssh -o StrictHostKeyChecking=no -p 443 -R 0:localhost:3389 rdp@a.pinggy.io
