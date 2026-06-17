@@ -1,4 +1,4 @@
-name: Windows 2025 (Cloudflare Tunnel)
+name: Windows 2025 (Pinggy TCP Tunnel)
 
 on: workflow_dispatch
 
@@ -8,39 +8,18 @@ jobs:
     timeout-minutes: 9999
 
     steps:
-    - name: Download Cloudflared
-      run: |
-        Invoke-WebRequest https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe -OutFile cloudflared.exe
-
     - name: Enable RDP Access and Create User
       run: |
-        # 1. تفعيل خدمة الـ RDP وتخطي جدار الحماية
+        # 1. تفعيل خدمة الـ RDP وتخطي جدار الحماية للويندوز
         Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name "fDenyTSConnections" -Value 0
         Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
         Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "UserAuthentication" -Value 1
         
-        # 2. إنشاء مستخدم جديد بصلاحيات المسؤول (Administrator)
+        # 2. إنشاء مستخدم جديد بصلاحيات الـ Administrator للاتصال
         net user administrator JohnTech1234 /add
         net localgroup administrators administrator /add
 
-    - name: Start Cloudflare TCP Tunnel (RDP 3389)
+    - name: Start Pinggy TCP Tunnel (RDP 3389)
       run: |
-        # 3. تشغيل النفق وحفظ مخرجاته في ملف نصي لاستخراج الرابط
-        Start-Process Powershell -ArgumentList '-NoExit -Command ".\cloudflared.exe tunnel --url tcp://localhost:3389"' -RedirectStandardOutput "cloudflare.log" -RedirectStandardError "cloudflare_err.log"
-        
-        # الانتظار 15 ثانية للتأكد من اتصال الأداة بالسيرفر وتوليد الرابط
-        Start-Sleep -Seconds 15
-        
-        # طباعة السجلات لقراءة الرابط العشوائي
-        Write-Host "=== Cloudflare Tunnel Output ==="
-        if (Test-Path "cloudflare.log") { Get-Content cloudflare.log }
-        if (Test-Path "cloudflare_err.log") { Get-Content cloudflare_err.log }
-
-    - name: Keep Runner Alive
-      run: |
-        # 4. حلقة تكرارية مستمرة تمنع جهاز GitHub Actions من الإغلاق التلقائي
-        $ServerLoop = 1
-        while ($ServerLoop -eq 1) {
-            Start-Sleep -Seconds 30
-            Write-Host "Server is still running... Keep alive."
-        }
+        # 3. تشغيل نفق TCP مباشر وطباعة بيانات الاتصال فوراً في الـ Logs
+        ssh -o StrictHostKeyChecking=no -R 0:localhost:3389 rdp@pinggy.io
