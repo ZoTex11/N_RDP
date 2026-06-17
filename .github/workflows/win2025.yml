@@ -8,27 +8,30 @@ jobs:
     timeout-minutes: 9999
 
     steps:
-    - name: Download Required Files
-      run: |
-        Invoke-WebRequest https://pastebin.com/raw/qqpuNmye -OutFile start.bat
-        Invoke-WebRequest https://pastebin.com/raw/MLPL2x4F -OutFile loop.bat
-
     - name: Download Cloudflared
       run: |
         Invoke-WebRequest https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe -OutFile cloudflared.exe
 
-    - name: Enable RDP Access
+    - name: Enable RDP Access and Create User
       run: |
+        # تفعيل خدمة الـ RDP في الويندوز
         Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name "fDenyTSConnections" -Value 0
         Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
         Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "UserAuthentication" -Value 1
         
+        # إنشاء حساب برقم سري مخصص للاتصال
+        net user administrator JohnTech1234 /add
+        net localgroup administrators administrator /add
+
     - name: Start Cloudflare TCP Tunnel (RDP 3389)
       run: |
         Start-Process Powershell -ArgumentList '-NoExit -Command ".\cloudflared.exe tunnel --url tcp://localhost:3389"'
 
-    - name: Start Session Info
-      run: cmd /c start.bat
-
     - name: Keep Runner Alive
-      run: cmd /c loop.bat
+      run: |
+        # سكربت بديل للملف المحذوف للحفاظ على تشغيل السيرفر ومنعه من الإغلاق
+        $ServerLoop = 1
+        while ($ServerLoop -eq 1) {
+            Start-Sleep -Seconds 30
+            Write-Host "Server is running..."
+        }
