@@ -21,5 +21,5 @@ jobs:
 
     - name: Start Pinggy TCP Tunnel (RDP 3389)
       run: |
-        # 3. تشغيل النفق عبر بورت 443 المحمي لتفادي الـ Block وحظر الـ SSH
-        ssh -o StrictHostKeyChecking=no -p 443 -R 0:localhost:3389 rdp@a.pinggy.io
+        # 3. تشغيل النفق عبر بورت 443 مع تفعيل خيارات عدم التفاعل لطباعة الرابط فوراً
+        ssh -o StrictHostKeyChecking=no -T -n -p 443 -R 0:localhost:3389 rdp@a.pinggy.io
