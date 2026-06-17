@@ -1,4 +1,4 @@
-name: Windows 2025 (Pinggy Fix Tunnel)
+name: Windows 2025 (Pinggy Ultimate Tunnel)
 
 on: workflow_dispatch
 
@@ -21,16 +21,18 @@ jobs:
 
     - name: Start Pinggy TCP Tunnel (RDP 3389)
       run: |
-        # 3. تشغيل النفق في الخلفية وحفظ المخرجات في ملف نصي لقراءته
-        Start-Process powershell -ArgumentList "-NoExit -Command `"ssh -o StrictHostKeyChecking=no -p 443 -R 0:localhost:3389 rdp@a.pinggy.io > pinggy.log`""
+        # 3. تشغيل النفق في الخلفية وحفظ المخرجات في مسار ثابت C:\pinggy.log
+        Start-Process powershell -ArgumentList "-NoExit -Command `"ssh -o StrictHostKeyChecking=no -p 443 -R 0:localhost:3389 rdp@a.pinggy.io > C:\pinggy.log`""
         
-        # الانتظار 15 ثانية لتوليد الرابط من السيرفر
-        Start-Sleep -Seconds 15
+        # الانتظار 20 ثانية للتأكد من اكتمال الاتصال وتوليد الرابط من السيرفر
+        Start-Sleep -Seconds 20
         
-        # طباعة الرابط المستخرج من الملف النصي
+        # طباعة الرابط المستخرج مباشرة من المسار الثابت
         Write-Host "=== Your RDP Connection Info ==="
-        if (Test-Path "pinggy.log") {
-            Get-Content pinggy.log | Select-String "pinggy.link"
+        if (Test-Path "C:\pinggy.log") {
+            Get-Content "C:\pinggy.log" | Select-String "pinggy.link"
+        } else {
+            Write-Host "Log file not found at local root, trying to fetch content..."
         }
         Write-Host "================================"
 
